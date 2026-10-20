@@ -114,9 +114,12 @@ Enable `debug`, restart the add-on and watch the log.
 | Login works but no VLAN is applied | VLAN assignment not enabled on the client, VLAN missing on the network, or no `vlan` set for the user. |
 | Clients reject the server | CA not installed on the client or `server_name` does not match the configured domain. |
 
-If the VLAN attributes are not forwarded with PEAP, set
-`use_tunneled_reply = yes` in the `peap` section of the EAP module (this
-needs a custom image, the add-on does not expose it).
+The add-on sets `use_tunneled_reply = yes` in the PEAP configuration, so the
+VLAN of a user is part of the final Access-Accept. If a client still lands in
+the wrong VLAN, look for `Tunnel-Private-Group-Id` in the last
+`Sent Access-Accept` of the debug log and check the VLAN assignment option on
+the client side (for Omada: "Enable VLAN Assignment for Wireless Network" in
+the RADIUS profile).
 
 ## Security notes
 

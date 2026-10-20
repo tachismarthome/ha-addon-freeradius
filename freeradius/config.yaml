@@ -1,6 +1,6 @@
 name: "FreeRADIUS"
 description: "RADIUS server with per-user passwords and VLAN assignment for WPA-Enterprise and 802.1X"
-version: "0.3.0"
+version: "0.3.1"
 slug: "freeradius"
 url: "https://github.com/tachismarthome/ha-addon-freeradius/tree/main/freeradius"
 init: false

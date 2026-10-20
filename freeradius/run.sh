@@ -158,7 +158,40 @@ EOF
     fi
 }
 
-# Make PEAP the default EAP type and make sure the EAP module is enabled.
+# Patch an EAP module configuration file in place:
+#  - top-level default_eap_type = peap (offer PEAP to the client)
+#  - inside the peap block: default_eap_type = mschapv2 and
+#    use_tunneled_reply = yes, so the reply attributes of the inner tunnel
+#    (e.g. the VLAN assignment) are copied into the final Access-Accept.
+# The patch is idempotent, so it is safe to run on every start.
+patch_eap_file() {
+    local file="$1" tmp="$1.tmp"
+    awk '
+        {
+            line = $0
+            code = line
+            sub(/#.*/, "", code)
+            if (!in_peap && code ~ /^[[:space:]]*peap[[:space:]]*[{]/) { in_peap = 1; depth = 0 }
+            if (in_peap) {
+                if (code ~ /^[[:space:]]*default_eap_type[[:space:]]*=/) {
+                    sub(/=[[:space:]]*[A-Za-z0-9_]+/, "= mschapv2", line)
+                }
+                if (code ~ /^[[:space:]]*use_tunneled_reply[[:space:]]*=/) {
+                    sub(/=[[:space:]]*[A-Za-z0-9_]+/, "= yes", line)
+                }
+                depth += gsub(/[{]/, "{", code) - gsub(/[}]/, "}", code)
+                if (depth <= 0) in_peap = 0
+            } else if (!done && code ~ /^[[:space:]]*default_eap_type[[:space:]]*=/) {
+                sub(/=[[:space:]]*[A-Za-z0-9_]+/, "= peap", line)
+                done = 1
+            }
+            print line
+        }
+    ' "$file" > "$tmp" && cat "$tmp" > "$file"
+    rm -f "$tmp"
+}
+
+# Configure the EAP module (PEAP + VLAN forwarding) and make sure it is enabled.
 configure_eap() {
     local available="${RADDB}/mods-available/eap"
     local enabled="${RADDB}/mods-enabled/eap"
@@ -169,7 +202,7 @@ configure_eap() {
     for file in "$available" "$enabled"; do
         # Only edit regular files; a symlink points to a file that is handled itself.
         if [[ -f "$file" && ! -L "$file" ]]; then
-            sed -i 's/^\([[:space:]]*default_eap_type[[:space:]]*=[[:space:]]*\)[A-Za-z0-9_]*/\1peap/' "$file"
+            patch_eap_file "$file"
         fi
     done
 
