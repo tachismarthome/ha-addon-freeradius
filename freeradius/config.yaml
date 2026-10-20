@@ -1,0 +1,34 @@
+name: "FreeRADIUS"
+description: "RADIUS server with per-user passwords and VLAN assignment for WPA-Enterprise and 802.1X"
+version: "0.3.0"
+slug: "freeradius"
+url: "https://github.com/tachismarthome/ha-addon-freeradius/tree/main/freeradius"
+init: false
+arch:
+  - amd64
+  - aarch64
+startup: services
+boot: auto
+ports:
+  1812/udp: 1812
+  1813/udp: 1813
+ports_description:
+  1812/udp: "RADIUS authentication"
+  1813/udp: "RADIUS accounting"
+map:
+  - share:rw
+options:
+  shared_secret: "changeme"
+  client_network: "0.0.0.0/0"
+  server_name: "freeradius.local"
+  debug: false
+  users: []
+schema:
+  shared_secret: password
+  client_network: str
+  server_name: str
+  debug: bool
+  users:
+    - username: str
+      password: password
+      vlan: "int(1,4094)?"
