@@ -1,0 +1,29 @@
+configuration:
+  shared_secret:
+    name: Shared secret
+    description: Secret shared with the RADIUS clients (access points, switches, routers). This is not a user password.
+  client_network:
+    name: Client network
+    description: IPv4 address or CIDR network allowed to send RADIUS requests, e.g. 192.168.1.0/24. Include your access points.
+  server_name:
+    name: Server name
+    description: Name written into the server certificate. Clients can check it when validating the server.
+  debug:
+    name: Debug mode
+    description: Run FreeRADIUS in debug mode. The log then contains credentials, so only enable it while troubleshooting.
+  users:
+    name: Users
+    description: Users that may log in via WPA-Enterprise.
+    fields:
+      username:
+        name: Username
+        description: Login name, must be unique.
+      password:
+        name: Password
+        description: Password of the user.
+      vlan:
+        name: VLAN
+        description: Optional VLAN ID (1-4094) assigned after a successful login.
+network:
+  1812/udp: RADIUS authentication
+  1813/udp: RADIUS accounting
